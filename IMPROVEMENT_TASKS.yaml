@@ -1,0 +1,317 @@
+- id: IT-001
+  title: Centralize configuration management
+  category: Enhancement
+  axis: ProcessDebt
+  priority: P0
+  effort: 5
+  budget: "$1-10k"
+  rationale: |
+    The SELF_AUDIT highlights scattered hyperparameters across scripts leading to frequent misconfigurations. In the "Single Greatest Lever" section, a unified configuration system is estimated to save about 200 hours per year. Consolidating settings also reduces the risk of drift noted in "Model Drift" under Dragons in the Basement. By addressing this debt, we streamline experimentation and lower the time spent debugging.
+  description: |
+    Implement a configuration library that loads defaults, environment overrides, and command-line flags. Migrate existing scripts to use this library. Document usage with examples. Provide a conversion tool for old configs. Stakeholders: researchers supply defaults, engineers integrate with CI. Success checkpoint: all existing tasks run via the new config API without manual edits.
+  acceptance_criteria: |
+    - All tasks execute using the new config interface.
+    - No missing hyperparameter warnings in logs.
+    - Regression tests from capability sagas show unchanged accuracy metrics.
+  dependencies: []
+  owner_hint: DevOps engineer
+  review_protocol: |
+    - Code review by at least two core maintainers.
+    - CI pipeline must pass unit tests and integration tests.
+  sunset_criteria: |
+    System remains if used by 90% of new experiments for six months.
+
+- id: IT-002
+  title: Memory usage monitoring hook
+  category: Enhancement
+  axis: Reliability
+  priority: P1
+  effort: 2
+  budget: "$0-1k"
+  rationale: |
+    In the Temporal Learning saga, memory overflow caused optimizer resets, affecting stability. A simple monitoring hook could prevent this issue. Early detection reduces training failures and addresses the "Compute Cost Spiral" dragon by preventing runaway resource consumption.
+  description: |
+    Add a lightweight callback to measure GPU and CPU memory each epoch. Log warnings when usage exceeds 80% of capacity. Provide an automatic batch size reduction option. Update documentation so researchers know how to enable the hook. Minimal code changes are required.
+  acceptance_criteria: |
+    - Logs contain memory statistics per epoch.
+    - Training does not crash due to memory overflow in regression tests.
+  dependencies: []
+  owner_hint: Infrastructure engineer
+  review_protocol: |
+    Single maintainer review plus unit test verifying the hook output.
+  sunset_criteria: |
+    Retire when a full-featured monitoring service supersedes the hook.
+
+- id: IT-003
+  title: Standardize module interfaces
+  category: Enhancement
+  axis: TechDebt
+  priority: P1
+  effort: 5
+  budget: "$1-10k"
+  rationale: |
+    The Flexible Modularity saga notes inconsistent module interfaces causing integration failures and test flakiness. Standardization will increase pass rates from the current 60% toward the target 90% and reduce debugging time when combining modules.
+  description: |
+    Define formal input/output schemas for each module. Introduce version tagging so that incompatible changes are detected automatically. Refactor existing modules to comply with the standard. Provide migration notes in the documentation. Ensure the registry described in SELF_AUDIT is populated with metadata.
+  acceptance_criteria: |
+    - All modules declare schema version in code headers.
+    - Integration tests show >85% pass rate.
+    - No undefined behaviour reported in issue tracker for one month.
+  dependencies: []
+  owner_hint: Lead engineer
+  review_protocol: |
+    Pair programming review plus design approval from Proposal Board.
+  sunset_criteria: |
+    Close once two major releases ship using the new standard without regressions.
+
+- id: IT-004
+  title: Visualization memory streaming
+  category: Enhancement
+  axis: Sustainability
+  priority: P2
+  effort: 3
+  budget: "$0-1k"
+  rationale: |
+    The Visualization and Analysis saga reports a 20% crash rate due to high memory use. Streaming frames from disk rather than loading all at once will reduce carbon footprint and enhance user experience, aligning with the Ethics & Planet section's goal of decreasing energy per epoch.
+  description: |
+    Implement chunked loading for visualization frames. Refactor plotting scripts to read data in streams. Add a parameter allowing users to choose resolution levels. Provide unit tests with large sample datasets to verify reduced memory load.
+  acceptance_criteria: |
+    - Visualization crash rate drops below 5% in test runs.
+    - Memory usage stays under 70% of available RAM when rendering 1k frames.
+  dependencies: []
+  owner_hint: Research engineer
+  review_protocol: |
+    Code reviewed by visualization specialist and performance benchmark included in CI.
+  sunset_criteria: |
+    Retire when a more sophisticated visualization suite replaces current scripts.
+
+- id: IT-005
+  title: Reward sanity checks
+  category: Remediation
+  axis: Reliability
+  priority: P1
+  effort: 2
+  budget: "$0-1k"
+  rationale: |
+    In the Reinforcement Learning Integration saga, corrupted rewards went unnoticed, leading to wasted training cycles. Implementing sanity checks directly addresses this reliability gap and aligns with stakeholders’ desire for stable experiments.
+  description: |
+    Add assertions after each episode verifying reward ranges and distribution. Log anomalies to a dedicated file for easy inspection. Provide configuration flags to disable checks for performance benchmarks. Update RL wrapper documentation with examples.
+  acceptance_criteria: |
+    - No reward computation errors in automated RL tests for one month.
+    - Log file remains empty of anomalies during standard training scripts.
+  dependencies: []
+  owner_hint: RL maintainer
+  review_protocol: |
+    At least one RL researcher approves changes; CI runs RL regression tests.
+  sunset_criteria: |
+    Checks may be removed if environment APIs guarantee reward consistency.
+
+- id: IT-006
+  title: Dataset checksum verification
+  category: Remediation
+  axis: Security
+  priority: P0
+  effort: 3
+  budget: "$1-10k"
+  rationale: |
+    Dragons in the Basement cite Data Mismanagement as a risk. Corrupted datasets once led to mislabelled training results. Adding mandatory checksum verification ensures integrity and reduces the chance of poisoning or accidental bias injection.
+  description: |
+    Create a checksum manifest for each official dataset. Modify loaders to confirm checksums before use. If mismatched, the process aborts with a clear error. Document how to regenerate manifests. Provide a command-line tool for community users to verify their datasets.
+  acceptance_criteria: |
+    - Loader refuses to start if checksums do not match manifest.
+    - CI includes a sample dataset with checksum validation step.
+  dependencies: []
+  owner_hint: Data engineer
+  review_protocol: |
+    Two reviewers from the data team; security officer sign-off.
+  sunset_criteria: |
+    Retire once all datasets are hosted on trusted, verified sources only.
+
+- id: IT-007
+  title: Automated dependency audits
+  category: Governance
+  axis: Security
+  priority: P1
+  effort: 3
+  budget: "$1-10k"
+  rationale: |
+    The audit mentions Dependency Decay as a dragon. Outdated packages may harbor vulnerabilities. Regular scans reduce security risks and ensure compatibility with modern hardware.
+  description: |
+    Integrate a tool like `pip-audit` or similar into CI. Schedule weekly scans and send results to the team channel. Provide guidance for quickly patching flagged packages. Document procedures for approving or postponing updates.
+  acceptance_criteria: |
+    - Weekly audit reports generated in CI logs.
+    - No critical vulnerabilities remain open for more than two weeks.
+  dependencies: []
+  owner_hint: Security officer
+  review_protocol: |
+    Security officer and lead engineer approve each flagged update; CI enforces compliance.
+  sunset_criteria: |
+    Merge into general maintenance once dependency health consistently meets baseline.
+
+- id: IT-008
+  title: Contributor onboarding guide
+  category: Enhancement
+  axis: ProcessDebt
+  priority: P2
+  effort: 2
+  budget: "$0-1k"
+  rationale: |
+    Appendix G recounts a failed collaboration due to incomplete documentation. A comprehensive onboarding guide will help external contributors avoid confusion and maintain consistency. This also aligns with the Governance Graphic Novel, streamlining proposals and code reviews.
+  description: |
+    Draft a markdown guide covering environment setup, contribution workflow, code style, and testing. Include screenshots and example commands. Publish in the repository and link from README. Review with existing contributors for clarity.
+  acceptance_criteria: |
+    - External collaborators can set up environment using the guide without additional help.
+    - Pull requests follow recommended structure.
+  dependencies: []
+  owner_hint: Documentation maintainer
+  review_protocol: |
+    Documentation review by at least two contributors; minor edits allowed post-merge.
+  sunset_criteria: |
+    Archive when contributions drop to low volume or project reaches stable maintenance.
+
+- id: IT-009
+  title: Carbon usage dashboard
+  category: Sustainability
+  axis: Sustainability
+  priority: P2
+  effort: 5
+  budget: "$10-50k"
+  rationale: |
+    The Ethics & Planet section highlights energy consumption. A dashboard would help monitor carbon usage per task, enabling more efficient training schedules and aligning with environmental commitments.
+  description: |
+    Collect energy metrics from training hardware using available APIs. Aggregate data into a web-based dashboard showing trends over time. Allow filtering by task and date. Provide alerts when consumption exceeds predefined thresholds.
+  acceptance_criteria: |
+    - Dashboard displays kWh per training run within 10% accuracy.
+    - Energy per epoch decreases by 10% after optimization efforts measured over a quarter.
+  dependencies: []
+  owner_hint: Sustainability lead
+  review_protocol: |
+    Dashboard reviewed by infrastructure and sustainability teams; user acceptance test from research scientist.
+  sunset_criteria: |
+    Retire when all compute moves to zero-emission infrastructure.
+
+- id: IT-010
+  title: Burnout mitigation policy
+  category: Governance
+  axis: Ethics
+  priority: P3
+  effort: 3
+  budget: "$0-1k"
+  rationale: |
+    Dragon number six flags team burnout as a threat. Establishing clear workload limits and mental health support fosters a sustainable pace and reduces errors from fatigue.
+  description: |
+    Draft a policy outlining maximum weekly hours, required break periods, and rotational on-call duties. Provide a confidential feedback channel for team members to report stress. Include mental health resources and guidelines for escalating concerns.
+  acceptance_criteria: |
+    - Policy ratified by a majority vote of core team members.
+    - Quarterly surveys show reduction in reported burnout symptoms.
+  dependencies: []
+  owner_hint: HR liaison
+  review_protocol: |
+    Review by HR and project leadership; anonymous survey post-rollout.
+  sunset_criteria: |
+    Policy may be merged into company handbook once proven effective.
+
+- id: IT-011
+  title: Enhanced telemetry privacy controls
+  category: Enhancement
+  axis: Privacy
+  priority: P1
+  effort: 5
+  budget: "$1-10k"
+  rationale: |
+    The Security Breach dragon warns of potential exposure of user data. Introducing granular privacy controls ensures compliance with emerging regulations and builds trust with community users.
+  description: |
+    Implement opt-in telemetry with clear consent prompts. Data should be anonymized and encrypted before storage. Provide users with a command-line flag to disable telemetry entirely. Update privacy policy to reflect these changes and communicate them on the project website.
+  acceptance_criteria: |
+    - Telemetry data stored without personal identifiers.
+    - Users can verify opt-out by checking logs for confirmation message.
+  dependencies: []
+  owner_hint: Privacy officer
+  review_protocol: |
+    Security and legal review; automated tests confirm opt-out works.
+  sunset_criteria: |
+    Retire feature if telemetry collection ceases altogether.
+
+- id: IT-012
+  title: Continuous memory archive rotation
+  category: Sustainability
+  axis: TechDebt
+  priority: P2
+  effort: 3
+  budget: "$0-1k"
+  rationale: |
+    The Memory & Learning Liturgy describes moving stale memory objects to cold storage. Automating this process prevents disk bloat and aligns with sustainability goals by reducing storage-related energy use.
+  description: |
+    Create a scheduled script that checks for memory objects older than six months without references. Move them to compressed archives and log the operation. Provide a restore command for rare retrievals. Announce schedule in documentation so researchers can anticipate rotation.
+  acceptance_criteria: |
+    - Archive script runs weekly and logs actions.
+    - Disk usage for memory objects decreases by 20% after three months.
+  dependencies: []
+  owner_hint: DevOps engineer
+  review_protocol: |
+    Code reviewed by storage specialist; test with a sample dataset before deployment.
+  sunset_criteria: |
+    Retire when memory object count remains constant for a year.
+
+- id: IT-013
+  title: External collaboration protocol
+  category: Governance
+  axis: ProcessDebt
+  priority: P2
+  effort: 5
+  budget: "$1-10k"
+  rationale: |
+    Appendix G details problems during an external collaboration. Formalizing a protocol will help manage expectations, protect intellectual property, and ensure consistent code quality from partners.
+  description: |
+    Draft a collaboration agreement template covering documentation standards, test requirements, and communication channels. Provide onboarding sessions for partners to walk through repository practices. Establish a shared issue tracker for cross-team tickets.
+  acceptance_criteria: |
+    - All new collaborations sign the agreement.
+    - External pull requests include passing tests and documentation links.
+  dependencies: []
+  owner_hint: Project manager
+  review_protocol: |
+    Legal and engineering leads sign off; initial collaboration used as pilot review.
+  sunset_criteria: |
+    Retire when collaborations become rare or organization policy supersedes.
+
+- id: IT-014
+  title: Multi-agent testing suite
+  category: Research
+  axis: Reliability
+  priority: P2
+  effort: 8
+  budget: "$10-50k"
+  rationale: |
+    The root-cause spiral in RL integration points to missing coverage for multi-agent setups. A dedicated testing suite would expose edge cases early and facilitate advanced research uses.
+  description: |
+    Develop simulated environments with multiple agents interacting. Implement test scenarios focusing on seed synchronization and reward shaping. Integrate with CI so that new RL modules run through the suite automatically. Document how to extend tests for future tasks.
+  acceptance_criteria: |
+    - Multi-agent suite runs in CI within acceptable time (<30 minutes).
+    - At least two existing RL tasks adapted to use the suite without errors.
+  dependencies: []
+  owner_hint: RL research lead
+  review_protocol: |
+    Research scientist and infrastructure engineer must approve; results logged in CI artifacts.
+  sunset_criteria: |
+    Archive when RL research focus shifts away from multi-agent domains.
+
+- id: IT-015
+  title: Quarterly public impact report
+  category: Governance
+  axis: Ethics
+  priority: P3
+  effort: 5
+  budget: "$1-10k"
+  rationale: |
+    In Ethics & Planet, the team committed to a yearly impact report. A quarterly cadence increases transparency and accountability. Publishing metrics such as carbon usage and fairness scores demonstrates good stewardship and fosters community trust.
+  description: |
+    Compile data from dashboards and audits into a concise report every quarter. Include sections on energy consumption, dataset compliance, and noteworthy ethical discussions. Host the reports on the project website and announce via mailing list.
+  acceptance_criteria: |
+    - First report published within three months.
+    - Subsequent reports follow at consistent three-month intervals.
+  dependencies: []
+  owner_hint: Communications lead
+  review_protocol: |
+    Review by sustainability lead and legal team; final approval from project leadership.
+  sunset_criteria: |
+    Merge into annual reporting once audience engagement drops below 20% of subscribers.
